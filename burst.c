@@ -1,7 +1,7 @@
 /*
   burst.c
 
-  Counts the lines in the listed files and writes to multiple files using pthreads
+  splitting the given file into multiple files using threads
 
  Roopa Singarapu
  rs189@zips.uakron.edu
@@ -25,46 +25,31 @@
 #define W_FLAGS (O_WRONLY | O_CREAT)
 #define W_PERMS (S_IRUSR  | S_IWUSR)
 
-struct copy_t {
-  int infd;
+struct t_args {
+ int start;
+ int end;
   int outfd;
+  char *fbuf;
   int status;
   pthread_t tid;
 };
 
-void* copyfile_thread(void* args) {
-  struct copy_t* copyinfo = args;
-  int totalbytes = 0;
- return (void *) copyfile(copyinfo->infd, copyinfo->outfd, &totalbytes);
+void* burst_thread(void* args) {
+  struct t_args* arg = args;
+  	arg->start;
+	printf("arg->start: %d", arg->start);
+	arg->end;
+	arg->outfd;
+	arg->fbuf;
+  writefile(arg->start, arg->end, arg->outfd, arg->fbuf);
 }
 
-
-int copyfile(int infd, int outfd, int* totalbytes) {
-	char buf[BUFSIZE];
-	int lines = 0;
-    while (1) {
-    // read a block
-    ssize_t bytesread = read(infd, buf, BUFSIZE);
-    if ((bytesread == -1) && (errno == EINTR))
-      continue;
-    if (bytesread == -1) {
-      puts("I HAD AN ERROR");
-      return 1;
-    }
-    if (bytesread == 0)
-      break;
-//count the number of lines
- for (int i = 0; i < bytesread; ++i){
-      if (buf[i] == '\n'){
-        ++lines;
-	if(lines%500 == 0){
-	break;
-
-      }//500 lines check ends
-     }//new line check ends
-    }//for loop end
-    // write the block that was read
-    ssize_t byteswrote;
+int writefile(int start, int end, int outfd, char* fbuf) {
+	char buf[1];
+    for(int i = start; i<end; ++i){
+  	ssize_t bytesread = fbuf[i];
+	ssize_t byteswrote;
+	//writing to a file
     while (((byteswrote = write(outfd, buf, bytesread)) == -1) &&
            (errno == EINTR))
       ;
@@ -73,20 +58,17 @@ int copyfile(int infd, int outfd, int* totalbytes) {
     if (byteswrote == -1){
      	printf("Error in writing to file\n");
 	 return 1;
-	}
-	if(lines%500 == 0){
-	break;
-	}
-  }//end of while
 
-  return infd;
+	}
+    }//end of for loop
+  return 0;
 }
 
-int countlines(int argc, char *filename){
+
+int countlines(int lsize, char *filename, char *fbuf){
 int infd1 = STDIN_FILENO;
-  if (argc > 1) {
     infd1 = open(filename, O_RDONLY);
-  }
+
   if (infd1 < 0) {
     perror("Input open error");
     printf("Input err");
@@ -94,8 +76,10 @@ int infd1 = STDIN_FILENO;
   }
 char buf[BUFSIZE];
 int lines =0;
-        while(1){
-    // read a block
+int l = 0;
+       for(int l=0;l<lsize;++l){
+    	//while(l<lsize){
+	// read a block
     ssize_t bytesread = read(infd1, buf, BUFSIZE);
     if ((bytesread == -1) && (errno == EINTR))
       continue;
@@ -110,6 +94,8 @@ int lines =0;
     // increment by the number of newlines in this block
         //and writing to the file
     for (int i = 0; i < bytesread; ++i){
+	fbuf[l]=buf[i];//
+	++l;
       if (buf[i] == '\n'){
         ++lines;
         }
@@ -127,52 +113,90 @@ int main(int argc, char* argv[]) {
 
 char* inpfile = malloc(strlen(argv[1]) + 1);
 strcpy(inpfile, argv[1]);
-int lines = countlines(argc, inpfile);
-printf("lines in file: %d\n", lines);
+struct stat statbuf;
+int status = stat(argv[1], &statbuf);
+if(status == -1){
+perror("Error in getting status");
+return 1;
+}
+unsigned int lsize = statbuf.st_size;
+//printf("file size: %d", lsize);
 
+char *fbuf = malloc(lsize);
+int lines = countlines(lsize, inpfile, fbuf);
+//printf("fbuf: %s",fbuf);
+//printf("lines in file: %d\n", lines);
 int numcopiers;
 if(lines>0){
-numcopiers = lines/500;
+numcopiers = lines/20;
+if((lines%20)!=0){
+numcopiers+=1;
 }
-//printf("Numcopiers: %d",numcopiers);
+}
+printf("Numcopiers: %d",numcopiers);
 
-int infd1 = STDIN_FILENO;
-if(argc > 1){
-infd1 = open(argv[1], R_FLAGS);
-}
-if(infd1 < 0){
-perror("error in input");
-}
+  struct t_args* threadinfo = calloc(numcopiers, sizeof(struct t_args));
 	//tokenize the input file name to get the output file name
 	char *head = strtok(inpfile, "."); 
 	char *ext = strtok(NULL," ");
 	//printf("head: %s\n ext: %s\n", head, ext); 
 
-void* status;
-struct copy_t* copyinfo = calloc(numcopiers, sizeof(struct copy_t));
-for(int i=0; i< numcopiers; ++i){
+int start = 0;
+int end;
+int flines = 0;
+int count = 0;
+//printf("lsize: %d\n",lsize);
+for(int i=0;i<lsize;++i){
+//printf("buf[i]: %c\n", fbuf[i]);
+if(fbuf[i] == '\n'){
+++flines;
+//printf("i: %d  flines: %d\n",i,flines);
 
-	char filename[MAXFILENAME];
-	snprintf(filename, MAXFILENAME, "%s%d.%s", head, i+1, ext);
-	fprintf(stderr, "%s\n", filename);
+//printf("flines: %d",flines);
+int mod = flines%20;
+//printf("mod: %d",mod);
+if(mod==0){ 
+//printf("inside 20 flines: %d",flines);
 
-	int outfd = STDOUT_FILENO;
-	outfd = open(filename, W_FLAGS, W_PERMS);
-	if(outfd<0){
-	perror("Error in opening the Output file");
-	return 1;
-	}
-	// use the thread to copy the file
-    copyinfo[i].infd = infd1;
-    copyinfo[i].outfd = outfd;
-    printf("Creating the thread\n");
-	if(pthread_create(&copyinfo[i].tid, copyfile_thread, NULL, &copyinfo[i])!=0){
-	printf("Error in creating thread\n");
-	}
-	infd1 =(int)status;
-	printf("status: %d", infd1);
+end = i;
+//printf("end: %d",end);
+//printf("create new file\n");
+//create a new file 
+ char filename[MAXFILENAME];
+ snprintf(filename, MAXFILENAME, "%s%d.%s", head, count+1, ext);
+ fprintf(stderr, "%s\n", filename);
+ //printf("Filename : %s \n",filename);
+ int outfd = STDOUT_FILENO;
+ outfd = open(filename, W_FLAGS, W_PERMS);
+    if(outfd<0){
+        perror("Error in opening the Output file");
+        printf("\nError in op file opening\n");
+        return 1;
+        }
+//spawn a thread
+//printf("spawining a thread\n");
+//printf("Count 1: %d    flines: %d", count,flines);
+threadinfo[count].start = start;
+threadinfo[count].end = end;
+threadinfo[count].outfd = outfd;
+threadinfo[count].fbuf = fbuf;//
+//printf("fbuf: %s\n",fbuf);
+printf("\ntinfo fbuf: %s\n",threadinfo[count].fbuf);
+pthread_attr_t attr;
+int s = pthread_attr_init(&attr);
+int st =  pthread_create(&threadinfo[count].tid,&attr, &burst_thread, &threadinfo[count]);
+if(st==0){
+//printf("Error in thread creation");
 }
-
+//reset start variable
+//printf("Resetting the start variable\n");
+start = i;
+count++;
+//printf("Count inc: %d    flines: %d\n",count, flines);
+//flines = 0;
+}//end if \n
+}//if end mod
+}//end of for loop 
 /*
 	//close output file descriptor
 	if(outfd != STDOUT_FILENO){
