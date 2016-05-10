@@ -36,31 +36,36 @@ struct t_args {
 
 void* burst_thread(void* args) {
   struct t_args* arg = args;
-  	arg->start;
-	printf("arg->start: %d", arg->start);
-	arg->end;
-	arg->outfd;
-	arg->fbuf;
+        arg->start;
+        printf("arg->start: %d\n", arg->start);
+        arg->end;
+        arg->outfd;
+        arg->fbuf;
   writefile(arg->start, arg->end, arg->outfd, arg->fbuf);
 }
 
 int writefile(int start, int end, int outfd, char* fbuf) {
-	char buf[1];
-    for(int i = start; i<end; ++i){
-  	ssize_t bytesread = fbuf[i];
-	ssize_t byteswrote;
-	//writing to a file
+        char buf[1];
+        printf("\nIn writefile\n");
+    for(int i = start; i<=end; i++){
+        buf[0]= fbuf[i];
+        ssize_t bytesread = 1;
+        ssize_t byteswrote;
+        //writing to a file
+        //printf("\n write file : %c",fbuf[i]);
     while (((byteswrote = write(outfd, buf, bytesread)) == -1) &&
            (errno == EINTR))
       ;
 
     // "real" write error
     if (byteswrote == -1){
-     	printf("Error in writing to file\n");
-	 return 1;
-
-	}
+        printf("\nError in writing to file\n");
+         return 1;
+        }
     }//end of for loop
+//close output file desc
+close(outfd);
+
   return 0;
 }
 
@@ -78,8 +83,7 @@ char buf[BUFSIZE];
 int lines =0;
 int l = 0;
        for(int l=0;l<lsize;++l){
-    	//while(l<lsize){
-	// read a block
+        // read a block
     ssize_t bytesread = read(infd1, buf, BUFSIZE);
     if ((bytesread == -1) && (errno == EINTR))
       continue;
@@ -94,17 +98,17 @@ int l = 0;
     // increment by the number of newlines in this block
         //and writing to the file
     for (int i = 0; i < bytesread; ++i){
-	fbuf[l]=buf[i];//
-	++l;
-      if (buf[i] == '\n'){
+        fbuf[l]=buf[i];//
+        ++l;
+     if (buf[i] == '\n'){
         ++lines;
         }
        }
  }//end of while
 // close the input file
   if (infd1 != STDIN_FILENO){
-	close(infd1);
-        printf("close the file\n");
+        close(infd1);
+       // printf("close the file\n");
         }
 return lines;
 }
@@ -120,11 +124,8 @@ perror("Error in getting status");
 return 1;
 }
 unsigned int lsize = statbuf.st_size;
-//printf("file size: %d", lsize);
-
 char *fbuf = malloc(lsize);
 int lines = countlines(lsize, inpfile, fbuf);
-//printf("fbuf: %s",fbuf);
 //printf("lines in file: %d\n", lines);
 int numcopiers;
 if(lines>0){
@@ -133,35 +134,28 @@ if((lines%20)!=0){
 numcopiers+=1;
 }
 }
-printf("Numcopiers: %d",numcopiers);
+printf("Numcopiers: %d\n",numcopiers);
 
   struct t_args* threadinfo = calloc(numcopiers, sizeof(struct t_args));
-	//tokenize the input file name to get the output file name
-	char *head = strtok(inpfile, "."); 
-	char *ext = strtok(NULL," ");
-	//printf("head: %s\n ext: %s\n", head, ext); 
+        //tokenize the input file name to get the output file name
+        char *head = strtok(inpfile, ".");
+        char *ext = strtok(NULL," ");
+        //printf("head: %s\n ext: %s\n", head, ext);
 
 int start = 0;
 int end;
 int flines = 0;
 int count = 0;
-//printf("lsize: %d\n",lsize);
 for(int i=0;i<lsize;++i){
 //printf("buf[i]: %c\n", fbuf[i]);
 if(fbuf[i] == '\n'){
 ++flines;
-//printf("i: %d  flines: %d\n",i,flines);
-
-//printf("flines: %d",flines);
 int mod = flines%20;
 //printf("mod: %d",mod);
-if(mod==0){ 
-//printf("inside 20 flines: %d",flines);
-
+if(mod == 0){
+	
 end = i;
-//printf("end: %d",end);
-//printf("create new file\n");
-//create a new file 
+//create a new file
  char filename[MAXFILENAME];
  snprintf(filename, MAXFILENAME, "%s%d.%s", head, count+1, ext);
  fprintf(stderr, "%s\n", filename);
@@ -174,35 +168,77 @@ end = i;
         return 1;
         }
 //spawn a thread
-//printf("spawining a thread\n");
-//printf("Count 1: %d    flines: %d", count,flines);
 threadinfo[count].start = start;
 threadinfo[count].end = end;
 threadinfo[count].outfd = outfd;
-threadinfo[count].fbuf = fbuf;//
-//printf("fbuf: %s\n",fbuf);
-printf("\ntinfo fbuf: %s\n",threadinfo[count].fbuf);
-pthread_attr_t attr;
-int s = pthread_attr_init(&attr);
-int st =  pthread_create(&threadinfo[count].tid,&attr, &burst_thread, &threadinfo[count]);
+threadinfo[count].fbuf = fbuf;
+printf("start:  %d\n",threadinfo[count].start);
+printf("end:  %d\n",threadinfo[count].end);
+//pthread_attr_t attr;
+//int s = pthread_attr_init(&attr);
+//printf("fbuf:  %s\n",threadinfo[count].fbuf);
+int st =  pthread_create(&threadinfo[count].tid, NULL, burst_thread, &threadinfo[count]);
 if(st==0){
-//printf("Error in thread creation");
+//printf("\n No Error in thread creation\n");
 }
 //reset start variable
-//printf("Resetting the start variable\n");
-start = i;
+start = i+1;
 count++;
-//printf("Count inc: %d    flines: %d\n",count, flines);
-//flines = 0;
-}//end if \n
-}//if end mod
-}//end of for loop 
+printf("Count value >> %d \n", count);
+flines = 0;
+}//end if mod
+}//if end \n
+if(numcopiers == count+1) {
+	break;
+}
+}//end of for loop
 /*
-	//close output file descriptor
-	if(outfd != STDOUT_FILENO){
-	close(outfd);
-	}
+        //close output file descriptor
+        if(outfd != STDOUT_FILENO){
+        close(outfd);
+        }
 
 */
+
+
+
+if(numcopiers == count+1) {
+    printf("For last chunk of the input file \n");
+	start = end+1;
+	end = lsize-1;
+	//create a new file
+	 char filename[MAXFILENAME];
+	 snprintf(filename, MAXFILENAME, "%s%d.%s", head, count+1, ext);
+	 fprintf(stderr, "%s\n", filename);
+	 //printf("Filename : %s \n",filename);
+	 int outfd = STDOUT_FILENO;
+	 outfd = open(filename, W_FLAGS, W_PERMS);
+		if(outfd<0) {
+			perror("Error in opening the Output file");
+			printf("\nError in op file opening\n");
+			return 1;
+		}
+	//spawn a thread
+	threadinfo[count].start = start;
+	threadinfo[count].end = end;
+	threadinfo[count].outfd = outfd;
+	threadinfo[count].fbuf = fbuf;
+	printf("Last chunk start:  %d\n",threadinfo[count].start);
+	printf("Last chunk end:  %d\n",threadinfo[count].end);
+	int st =  pthread_create(&threadinfo[count].tid, NULL, burst_thread, &threadinfo[count]);
+	if(st==0){
+	 printf("\n No Error in thread creation\n");
+	}	
+}
+printf("Im about to enter for loop \n");
+for(int x=0;x<numcopiers-1;++x)
+{
+    printf("start for loop %d\n", x);
+    if(pthread_join(threadinfo[x].tid, NULL)){
+    printf("Error joining thread %d\n", x);}
+    printf("end for loop %d\n", x);
+}
+printf("All threads executed successfully \n");
+pthread_exit(NULL);
 return 0;
 }
