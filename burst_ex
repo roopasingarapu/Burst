@@ -1,0 +1,27 @@
+rs189@unix:~/Project4/burst$ ls
+[0m[01;32mburst[0m    [01;32mburstman[0m       [01;32mburstman.md[0m  [01;32mREADME.md[0m
+[01;32mburst.c[0m  [01;32mburstman.html[0m  [01;32mdata.txt[0m     screenlog.0
+rs189@unix:~/Project4/burst$ ./burst data.txt 
+rs189@unix:~/Project4/burst$ ls
+[0m[01;32mburst[0m    [01;32mburstman[0m       [01;32mburstman.md[0m  data2.txt  [01;32mREADME.md[0m
+[01;32mburst.c[0m  [01;32mburstman.html[0m  data1.txt    [01;32mdata.txt[0m   screenlog.0
+rs189@unix:~/Project4/burst$ wc data.a[Ktxt [1@-[1@l[1@ 
+580 data.txt
+rs189@unix:~/Project4/burst$ wc -l data.txt [1@1
+500 data1.txt
+rs189@unix:~/Project4/burst$ wc -l data1.txt [1P[1@2
+80 data2.txt
+rs189@unix:~/Project4/burst$ ./burst -h
+
+Report bugs to: rs189@zips.uakron.edu
+burst home page: <http://www.gnu.org/software/burst/>
+General help using GNU software: <http://www.gnu.org/gethelp/>
+rs189@unix:~/Project4/burst$ ./burst -h[K[K--versii[Kon
+
+GNU  burst 2.9
+Copyright (C) 2007 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law. 
+rs189@unix:~/Project4/burst$ exit
+exit
