@@ -140,7 +140,7 @@ fprintf(stderr, "General help using GNU software: <http://www.gnu.org/gethelp/>\
 break;
     case 'V':
 flag =1;
-fprintf(stderr, "\nGNU  burst 2.9\nCopyright (C) 2007 Free Software Foundation, Inc.\n");
+fprintf(stderr, "GNU  burst 2.9\nCopyright (C) 2007 Free Software Foundation, Inc.\n");
 fprintf(stderr, "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n");
 fprintf(stderr, "This is free software: you are free to change and redistribute it.\n");
 fprintf(stderr, "There is NO WARRANTY, to the extent permitted by law. \n");
