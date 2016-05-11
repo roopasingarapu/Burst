@@ -1,27 +1,52 @@
 rs189@unix:~/Project4/burst$ ls
-[0m[01;32mburst[0m    [01;32mburstman[0m       [01;32mburstman.md[0m  [01;32mREADME.md[0m
-[01;32mburst.c[0m  [01;32mburstman.html[0m  [01;32mdata.txt[0m     screenlog.0
-rs189@unix:~/Project4/burst$ ./burst data.txt 
-rs189@unix:~/Project4/burst$ ls
-[0m[01;32mburst[0m    [01;32mburstman[0m       [01;32mburstman.md[0m  data2.txt  [01;32mREADME.md[0m
-[01;32mburst.c[0m  [01;32mburstman.html[0m  data1.txt    [01;32mdata.txt[0m   screenlog.0
-rs189@unix:~/Project4/burst$ wc data.a[Ktxt [1@-[1@l[1@ 
+[0m[01;32mburst[0m   burst1.html  [01;32mburst.c[0m   [01;32mREADME.md[0m
+burst1  [01;32mburst1.md[0m    [01;32mdata.txt[0m  screenlog.0
+rs189@unix:~/Project4/burst$ ec[K[Kwc -l data.txt
 580 data.txt
-rs189@unix:~/Project4/burst$ wc -l data.txt [1@1
+rs189@unix:~/Project4/burst$ ./burst data.txt
+rs189@unix:~/Project4/burst$ ;s[K[Kls
+[0m[01;32mburst[0m   burst1.html  [01;32mburst.c[0m    data2.txt  [01;32mREADME.md[0m
+burst1  [01;32mburst1.md[0m    data1.txt  [01;32mdata.txt[0m   screenlog.0
+rs189@unix:~/Project4/burst$ wc -l data1.txt 
 500 data1.txt
-rs189@unix:~/Project4/burst$ wc -l data1.txt [1P[1@2
+rs189@unix:~/Project4/burst$ wc -l data2.txt 
 80 data2.txt
-rs189@unix:~/Project4/burst$ ./burst -h
+rs189@unix:~/Project4/burst$ cat data1.txt data2.txt | diff - data.txt 
+rs189@unix:~/Project4/burst$ man[K[K[K./burst -h
 
 Report bugs to: rs189@zips.uakron.edu
 burst home page: <http://www.gnu.org/software/burst/>
 General help using GNU software: <http://www.gnu.org/gethelp/>
-rs189@unix:~/Project4/burst$ ./burst -h[K[K--versii[Kon
+rs189@unix:~/Project4/burst$ ./burst -h[K[K--version
 
 GNU  burst 2.9
 Copyright (C) 2007 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law. 
-rs189@unix:~/Project4/burst$ exit
+rs189@unix:~/Project4/burst$ man ./burst1
+[?1049h[?1h=BURST1()                                                              BURST1()[m
+[m
+[1mNAME[0m[m
+       [1mburst1[0m[m
+[m
+       [1mBURST(1)[0m[m
+[m
+[1mSYNOPSIS[0m[m
+       [1mburst[0m  [filename]  [1mburst[0m [-l] [number] [filename] [1mburst[0m [--lines] [num‐[m
+       ber] [filename][m
+[m
+[1mDESCRIPTION[0m[m
+       The program [1mburst[0m allows you to work with the text format. After burst‐[m
+       ing  the  file,  all  text  from  the original source file is preserved[m
+       including white-space, comments, and preprocessor statements.  No  pre‐[m
+       processing  of  the  source  code is done. In addition, the tool can be[m
+       applied to individual source files, or code fragments.[m
+[m
+       By default, burst splits the file into multiple  files  each  with  500[m
+       lines if the input file has more than 500 lines.[m
+[m
+[1mGENERAL[0m [1mOPTIONS[0m[m
+       [1m-h[0m, [1m--help[0m[m
+[3m Manual page burst1 line 1 (press h for help or q to quit)[23m[K[K[?1l>[?1049lrs189@unix:~/Project4/burst$ exit
 exit
