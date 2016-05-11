@@ -1,6 +1,7 @@
 /*
   burst.c
-  splitting the given file into multiple files using threads
+ splitting the given file into multiple files using threads
+
  Roopa Singarapu
  rs189@zips.uakron.edu
 */
@@ -32,7 +33,7 @@ struct t_args {
 void* burst_thread(void* args) {
   struct t_args* arg = args;
 		arg->start;
-		printf("arg->start: %d\n", arg->start);
+		//printf("arg->start: %d\n", arg->start);
 		arg->end;
 		arg->outfd;
 		arg->fbuf;
@@ -40,7 +41,7 @@ void* burst_thread(void* args) {
 }
 int writefile(int start, int end, int outfd, char* fbuf) {
 		char buf[1];
-		printf("\nIn writefile\n");
+		//printf("\nIn writefile\n");
 	for(int i = start; i<=end; i++){
 		buf[0]= fbuf[i];
 		ssize_t bytesread = 1;
@@ -52,7 +53,7 @@ int writefile(int start, int end, int outfd, char* fbuf) {
 	  ;
 	// "real" write error
 	if (byteswrote == -1){
-		printf("\nError in writing to file\n");
+		fprintf(stderr, "Error in writing to file\n");
 		 return 1;
 		}
 	}//end of for loop
@@ -65,7 +66,7 @@ int infd1 = STDIN_FILENO;
 	infd1 = open(filename, O_RDONLY);
   if (infd1 < 0) {
 	perror("Input open error");
-	printf("Input err");
+	//printf("Input err");
 	return 1;
   }
 char buf[BUFSIZE];
@@ -109,7 +110,7 @@ struct option longopts[] = {
  };
 
 int main(int argc, char* argv[]) {
-
+  int flag = 0;
   int oc;
   int a = 500;
   int option_index = 0;
@@ -117,39 +118,48 @@ int main(int argc, char* argv[]) {
 
     // invalid options
     if (oc == '?') {
-      fprintf(stderr, "inval: -%c\n", oc);
+      fprintf(stderr, "invalid argument: -%c\n", oc);
       continue;
     }
 
-    fprintf(stderr, "li: %d\n oc: %c\n", option_index, oc);
+	//fprintf(stderr, "li: %d\n oc: %c\n", option_index, oc);
 
     // generic argument reporter
-    fprintf(stderr, "gen--%s", longopts[option_index].name);
+//    fprintf(stderr, "gen--%s", longopts[option_index].name);
     if (longopts[option_index].has_arg == required_argument)
       fprintf(stderr, "=%s", optarg);
     fprintf(stderr, "\n");
     // continue;
 
     switch (oc) {
-    case 'h':
-      fprintf(stderr, "--help \n");
-      break;
+	case 'h':
+flag =1;
+	fprintf(stderr, "Report bugs to: rs189@zips.uakron.edu\n");
+fprintf(stderr, "burst home page: <http://www.gnu.org/software/burst/>\n");
+fprintf(stderr, "General help using GNU software: <http://www.gnu.org/gethelp/>\n");
+break;
     case 'V':
-      fprintf(stderr, "--version\n ");
+flag =1;
+fprintf(stderr, "\nGNU  burst 2.9\nCopyright (C) 2007 Free Software Foundation, Inc.\n");
+fprintf(stderr, "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n");
+fprintf(stderr, "This is free software: you are free to change and redistribute it.\n");
+fprintf(stderr, "There is NO WARRANTY, to the extent permitted by law. \n");
       break;
     case 'l':
-      a = atoi(optarg);
-      fprintf(stderr, "-lines= %s\n", optarg);
-         printf("a: %d\n",a);
+      	a = atoi(optarg);
+      //fprintf(stderr, "-lines= %s\n", optarg);
+      // printf("a: %d\n",a);
 		 if(a==0){
 		 fprintf(stderr, "Invalid number to split\n"); 
 		 }
          break;
-
         default:
         break;
     };
   }
+if(flag==1){
+return 0;
+}
 
  /* Print any remaining command line arguments (not options). */
 char* inpfile2;
@@ -158,8 +168,8 @@ char* inpfile2;
       //while (optind < argc)
       //printf ("%s ", argv[optind++]);
      inpfile2 = argv[optind++];
+	
 }
-
 char* inpfile = malloc(strlen(inpfile2 + 1));
 strcpy(inpfile, inpfile2);
 struct stat statbuf;
@@ -179,7 +189,7 @@ if((lines%a)!=0){
 numcopiers+=1;
 }
 }
-printf("Numcopiers: %d\n",numcopiers);
+//printf("Numcopiers: %d\n",numcopiers);
   struct t_args* threadinfo = calloc(numcopiers, sizeof(struct t_args));
 		//tokenize the input file name to get the output file name
 		char *head = strtok(inpfile, ".");
@@ -200,13 +210,13 @@ end = i;
 //create a new file
  char filename[MAXFILENAME];
  snprintf(filename, MAXFILENAME, "%s%d.%s", head, count+1, ext);
- fprintf(stderr, "%s\n", filename);
+// fprintf(stderr, "%s\n", filename);
  //printf("Filename : %s \n",filename);
  int outfd = STDOUT_FILENO;
  outfd = open(filename, W_FLAGS, W_PERMS);
 	if(outfd<0){
 		perror("Error in opening the Output file");
-		printf("\nError in op file opening\n");
+//		printf("\nError in op file opening\n");
 		return 1;
 		}
 //spawn a thread
@@ -214,8 +224,8 @@ threadinfo[count].start = start;
 threadinfo[count].end = end;
 threadinfo[count].outfd = outfd;
 threadinfo[count].fbuf = fbuf;
-printf("start:  %d\n",threadinfo[count].start);
-printf("end:  %d\n",threadinfo[count].end);
+//printf("start:  %d\n",threadinfo[count].start);
+//printf("end:  %d\n",threadinfo[count].end);
 int st =  pthread_create(&threadinfo[count].tid, NULL, burst_thread, &threadinfo[count]);
 if(st==0){
 //printf("\n No Error in thread creation\n");
@@ -223,7 +233,7 @@ if(st==0){
 //reset start variable
 start = i+1;
 count++;
-printf("Count value >> %d \n", count);
+//printf("Count value >> %d \n", count);
 flines = 0;
 }//end if mod
 }//if end \n
@@ -238,19 +248,19 @@ if(numcopiers == count+1) {
 		}
 */
 if(numcopiers == count+1) {
-	printf("For last chunk of the input file \n");
+//	printf("For last chunk of the input file \n");
 		start = end+1;
 		end = lsize-1;
 		//create a new file
 		 char filename[MAXFILENAME];
 		 snprintf(filename, MAXFILENAME, "%s%d.%s", head, count+1, ext);
-		 fprintf(stderr, "%s\n", filename);
+//		 fprintf(stderr, "%s\n", filename);
 		 //printf("Filename : %s \n",filename);
 		 int outfd = STDOUT_FILENO;
 		 outfd = open(filename, W_FLAGS, W_PERMS);
 				if(outfd<0) {
 						perror("Error in opening the Output file");
-						printf("\nError in op file opening\n");
+//						printf("\nError in op file opening\n");
 						return 1;
 				}
 		//spawn a thread
@@ -258,17 +268,17 @@ if(numcopiers == count+1) {
 		threadinfo[count].end = end;
 		threadinfo[count].outfd = outfd;
 		threadinfo[count].fbuf = fbuf;
-		printf("Last chunk start:  %d\n",threadinfo[count].start);
-		printf("Last chunk end:  %d\n",threadinfo[count].end);
+//		printf("Last chunk start:  %d\n",threadinfo[count].start);
+//		printf("Last chunk end:  %d\n",threadinfo[count].end);
 		int st =  pthread_create(&threadinfo[count].tid, NULL, burst_thread, &threadinfo[count]);
 		if(st==0){
-		 printf("\n No Error in thread creation\n");
+//		 printf("\n No Error in thread creation\n");
 		}
 }
-printf("Im about to enter for loop \n");
+//printf("Im about to enter for loop \n");
 for(int x=0;x<numcopiers-1;++x)
 {
-	printf("start for loop %d\n", x);
+//	printf("start for loop %d\n", x);
 	if(pthread_join(threadinfo[x].tid, NULL)){
 	//printf("Error joining thread %d\n", x);
 	}
